@@ -111,6 +111,15 @@ void SimOS::SimExit()
 
 void SimOS::SimWait()
 {
+    
+    if (pChildren_[currentCPU_].size() >= 2)
+    {
+        for (auto )
+    }
+    else 
+    {
+        return;
+    }
 
 }
 

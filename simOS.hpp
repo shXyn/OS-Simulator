@@ -5,6 +5,7 @@
 #include<vector>
 #include<deque>
 #include<unordered_map>
+#include <iterator>
 
 struct FileReadRequest
 {
@@ -22,6 +23,16 @@ struct MemoryItem
 using MemoryUsage = std::vector<MemoryItem>;
  
 constexpr int NO_PROCESS{ 0 };
+
+class Process
+{
+    private:
+        int PID {0};
+        std::deque<int> zombies;
+        std::deque<int> children;
+    public:
+        
+};
 
 class SimOS
 {
