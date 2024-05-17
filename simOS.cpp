@@ -1,12 +1,13 @@
 #include "simOS.hpp"
 
 SimOS::SimOS( int numberOfDisks, unsigned long long amountOfRAM, unsigned int pageSize)
-:amountOfFrames_{amountOfRAM/pageSize},pageSize_{pageSize},currentPID_{1},currentCPU_{NO_PROCESS},diskQueues_(numberOfDisks),currentIORequests_(numberOfDisks)
+:amountOfFrames_{amountOfRAM/pageSize},pageSize_{pageSize},currentPID_{1},currentCPU_{NO_PROCESS},diskQueues_(numberOfDisks),currentIORequests_(numberOfDisks),recencyCount_{0}
 {
-    memory_.resize(amountOfFrames_);
+    memoryCounter_.resize(amountOfFrames_);
+    physicalMemory_.resize(amountOfFrames_);
     for (unsigned long long i = 0; i < amountOfFrames_; ++i)
     {
-        memory_[i].pageNumber = i;
+        physicalMemory_[i].frameNumber = i;
     }
 }
 
@@ -15,6 +16,7 @@ void SimOS::NewProcess()
     int pid =  currentPID_++;
     Process newProcess;
     newProcess.PID = pid;
+    newProcess.logicalMemory.resize(amountOfFrames_);
     processes_[pid] = newProcess;
     UpdateCPU(pid);
 
@@ -92,6 +94,7 @@ void SimOS::SimFork()
 {
     int pid = currentPID_++;
     Process newFork{pid,currentCPU_,false,false};
+    newFork.logicalMemory.resize(amountOfFrames_);
     processes_[pid] = newFork;
     processes_[currentCPU_].children.push_back(newFork.PID);
     UpdateCPU(pid);
@@ -162,5 +165,40 @@ void SimOS::TerminateProcess(int pid)
 
 void SimOS::AccessMemoryAddress(unsigned long long address)
 {
+    unsigned long long processPage = address/pageSize_;
+    auto& selectProcess = processes_[currentCPU_].logicalMemory[processPage];
 
+    if(selectProcess.PID != 0 && physicalMemory_[selectProcess.frameNumber].PID == selectProcess.PID)
+    {
+        memoryCounter_[selectProcess.frameNumber] = recencyCount_++;
+        std::cout << "Count: "<< selectProcess.pageNumber <<  std::endl;
+    }
+
+    else{
+        unsigned long long processFrame;
+        auto leastRecent = std::min_element(memoryCounter_.begin(),memoryCounter_.end());
+        if (leastRecent != memoryCounter_.end())
+            processFrame = memoryCounter_.begin() - leastRecent;
+        else
+            processFrame = 0;
+        MemoryItem newItem{processPage,processFrame,currentCPU_};
+
+        memoryCounter_[processFrame] = recencyCount_++;
+        physicalMemory_[newItem.frameNumber] = newItem;
+        selectProcess = newItem;
+        std::cout << "Count: "<< selectProcess.pageNumber <<std::endl;
+    }
+}
+
+MemoryUsage SimOS::GetMemory()
+{
+    MemoryUsage output;
+    for(auto it = physicalMemory_.begin(); it != physicalMemory_.end(); ++it)
+    {
+        if(it->PID != 0 && !processes_[it->PID].isZombie)
+        {
+            output.push_back(*it);
+        }
+    }
+    return output;
 }

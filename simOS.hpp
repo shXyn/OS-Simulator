@@ -2,6 +2,7 @@
 #define SIMOS_HPP
 
 #include<iostream>
+#include<algorithm>
 #include<vector>
 #include<deque>
 #include<unordered_map>
@@ -31,6 +32,7 @@ struct Process
     bool isWaiting = false;
     bool isZombie = false;
     std::vector<int> children;
+    MemoryUsage logicalMemory;
 };
 
 class SimOS
@@ -39,16 +41,20 @@ class SimOS
         unsigned long long amountOfFrames_;
         unsigned int pageSize_;
         
-        MemoryUsage memory_;
+        MemoryUsage physicalMemory_;
         std::deque<int> readyQueue_;
 
         std::vector<std::deque<FileReadRequest>> diskQueues_;
 
         int currentPID_;
         int currentCPU_;
+        int recencyCount_;
         std::vector<FileReadRequest> currentIORequests_;
 
         std::unordered_map<int,Process> processes_;
+        std::vector<int> memoryCounter_;
+
+
 
     public:
         /**

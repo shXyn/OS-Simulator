@@ -82,6 +82,18 @@ int main() {
 		allTestsClean = false;
 		std::cout << "Test on the line 82 fails!" << std::endl;
 	}
+
+	sim.AccessMemoryAddress(140);
+	MemoryUsage ram{ sim.GetMemory() };
+	if (ram[0].pageNumber != 14 || ram[0].PID != 1)
+	{
+		allTestsClean = false;
+		std::cout << "Test on the line 90 fails!" << std::endl;
+	}
+
+	sim.AccessMemoryAddress(140);
+	MemoryUsage ram2{ sim.GetMemory() };
+
     
    	if (allTestsClean)
 		std::cout << "These preliminary tests are passed" << std::endl;
