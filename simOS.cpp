@@ -13,7 +13,9 @@ SimOS::SimOS( int numberOfDisks, unsigned long long amountOfRAM, unsigned int pa
 void SimOS::NewProcess()
 {
     int pid =  currentPID_++;
-    pChildren_[pid].push_back(0);
+    Process newProcess;
+    newProcess.PID = pid;
+    processes_[pid] = newProcess;
     UpdateCPU(pid);
 
 }
@@ -89,8 +91,9 @@ std::deque<int> SimOS::GetReadyQueue()
 void SimOS::SimFork()
 {
     int pid = currentPID_++;
-    pChildren_[pid];
-    pChildren_[currentCPU_].push_back(pid);
+    Process newFork{pid,currentCPU_,false,false};
+    processes_[pid] = newFork;
+    processes_[currentCPU_].children.push_back(newFork.PID);
     UpdateCPU(pid);
 }
 
@@ -100,29 +103,64 @@ void SimOS::TimerInterrupt()
     UpdateCPU();
 }
 
-//UNFINISHED
 void SimOS::SimExit()
 {
-    //If parent has not called wait 
-        //process becomes zombie, removed from pChildren_
-    //If parent has called wait, removed from pChildren_ and pChildren_[parent]
+    auto& process = processes_[currentCPU_];
+    
+    if (process.parentPID == 0)
+    {
+        TerminateProcess(currentCPU_);
+    }
+    else if(!processes_[process.parentPID].isWaiting)
+    {
+        Process newZombie{currentCPU_,process.parentPID,false,true};
+        TerminateProcess(currentCPU_);
+        process = newZombie;
+    }
+    else
+    {
+        UpdateCPU(process.parentPID);
+        TerminateProcess(currentCPU_);
+    }
     UpdateCPU();
 }
 
 void SimOS::SimWait()
 {
-    
-    if (pChildren_[currentCPU_].size() >= 2)
-    {
-        for (auto )
-    }
-    else 
+    auto& process = processes_[currentCPU_];
+
+    if (process.children.empty())
     {
         return;
+    }
+    for(auto it = process.children.begin(); it != process.children.begin(); ++it)
+    {
+        if(processes_[*it].isZombie)
+        {
+            TerminateProcess(*it);
+            process.children.erase(it);
+            return;
+        }
+    }
+    process.isWaiting = true;
+    UpdateCPU();
+}
+
+void SimOS::TerminateProcess(int pid)
+{
+    if (processes_[pid].children.empty())
+        processes_[pid] = Process();
+    else{
+        for(int child : processes_[pid].children)
+        {
+            TerminateProcess(child);
+        }
+        processes_[pid] = Process();
     }
 
 }
 
 void SimOS::AccessMemoryAddress(unsigned long long address)
 {
+
 }

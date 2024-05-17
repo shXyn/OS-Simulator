@@ -1,5 +1,5 @@
-#ifndef SIMOS_H
-#define SIMOS_H
+#ifndef SIMOS_HPP
+#define SIMOS_HPP
 
 #include<iostream>
 #include<vector>
@@ -24,14 +24,13 @@ using MemoryUsage = std::vector<MemoryItem>;
  
 constexpr int NO_PROCESS{ 0 };
 
-class Process
+struct Process
 {
-    private:
-        int PID {0};
-        std::deque<int> zombies;
-        std::deque<int> children;
-    public:
-        
+    int PID {0};
+    int parentPID {0};
+    bool isWaiting = false;
+    bool isZombie = false;
+    std::vector<int> children;
 };
 
 class SimOS
@@ -49,8 +48,7 @@ class SimOS
         int currentCPU_;
         std::vector<FileReadRequest> currentIORequests_;
 
-        std::unordered_map<int,std::vector<int>> pChildren_;
-        std::vector<int> waitQueue_;
+        std::unordered_map<int,Process> processes_;
 
     public:
         /**
@@ -162,9 +160,9 @@ class SimOS
         void UpdateCPU(int pid);
 
         /**
-         * Updates the processes in the wait queue
+         * Executes cascading termination on a process.
         */
-       void UpdateWait();
+       void TerminateProcess(int pid);
 };
 
 #endif
