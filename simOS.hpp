@@ -69,6 +69,14 @@ class SimOS
         void SimExit();
 
         /**
+         * The process wants to pause and wait for any of its child processes to terminate. Once the wait is over, the process goes to the 
+         * end of the ready-queue or the CPU. If the zombie-child already exists, the process proceeds right away (keeps using the CPU) and 
+         * the zombie-child disappears. If more than one zombie-child exists, the system uses one of them (any!) to immediately resumes the parent, 
+         * while other zombies keep waiting for the next wait from the parent.
+        */
+        void SimWait();
+
+        /**
          * The process wants to pause and wait for any of its child processes to terminate. Once the wait is over, the process goes to the end 
          * of the ready-queue or the CPU. If the zombie-child already exists, the process proceeds right away (keeps using the CPU) and the 
          * zombie-child disappears. If more than one zombie-child exists, the system uses one of them (any!) to immediately resumes the parent, 
@@ -141,6 +149,11 @@ class SimOS
          * Inserts new pid into CPU or ready queue.
         */
         void UpdateCPU(int pid);
+
+        /**
+         * Updates the processes in the wait queue
+        */
+       void UpdateWait();
 };
 
 #endif

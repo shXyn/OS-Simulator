@@ -13,7 +13,7 @@ SimOS::SimOS( int numberOfDisks, unsigned long long amountOfRAM, unsigned int pa
 void SimOS::NewProcess()
 {
     int pid =  currentPID_++;
-    pChildren_[pid];
+    pChildren_[pid].push_back(0);
     UpdateCPU(pid);
 
 }
