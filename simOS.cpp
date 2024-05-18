@@ -1,4 +1,4 @@
-#include "simOS.hpp"
+#include "simOS.h"
 
 SimOS::SimOS( int numberOfDisks, unsigned long long amountOfRAM, unsigned int pageSize)
 :amountOfFrames_{amountOfRAM/pageSize},pageSize_{pageSize},currentPID_{1},currentCPU_{NO_PROCESS},diskQueues_(numberOfDisks),currentIORequests_(numberOfDisks),recencyCount_{1}

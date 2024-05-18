@@ -1,4 +1,4 @@
-#include "simOS.hpp"
+#include "simOS.h"
 
 int main() {
     	SimOS sim{ 3, 1000, 10 };

@@ -1,5 +1,5 @@
-#ifndef SIMOS_HPP
-#define SIMOS_HPP
+#ifndef SIMOS_H
+#define SIMOS_H
 
 #include<iostream>
 #include<algorithm>
