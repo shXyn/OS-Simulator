@@ -152,6 +152,7 @@ int main() {
 		passed = false;
 	}
 
+	std::cout << sim.GetCPU() <<std::endl;
 	sim.NewProcess();	//17
 	sim.AccessMemoryAddress(3);
 	MemoryUsage ram = sim.GetMemory();
@@ -162,8 +163,10 @@ int main() {
 
 	sim.NewProcess();	//18
 	sim.TimerInterrupt();
+	std::cout << sim.GetReadyQueue().size() <<std::endl;
 	sim.AccessMemoryAddress(6);
 	ram = sim.GetMemory();
+	
 	if (sim.GetCPU() != 18 || ram.size() != 2) {
 		std::cout<<"Faield to load new process into RAM (line 166)\n";
 		passed = false;
