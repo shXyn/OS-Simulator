@@ -45,12 +45,13 @@ class SimOS
         MemoryUsage physicalMemory_;
         std::deque<int> readyQueue_;
 
+        std::vector<FileReadRequest> currentIORequests_;
         std::vector<std::deque<FileReadRequest>> diskQueues_;
 
         int currentPID_;
         int currentCPU_;
         int recencyCount_;
-        std::vector<FileReadRequest> currentIORequests_;
+        
 
         std::unordered_map<int,Process> processes_;
         std::vector<int> memoryCounter_;
@@ -170,6 +171,11 @@ class SimOS
          * Executes cascading termination on a process.
         */
        void TerminateProcess(int pid);
+
+       /**
+        * Updates the disk queues based on terminated processes
+       */
+      void UpdateDisk();
 };
 
 #endif

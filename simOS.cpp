@@ -52,10 +52,15 @@ void SimOS::UpdateCPU()
 
 void SimOS::UpdateCPU(int pid)
 {
-    if (GetCPU() == NO_PROCESS)
+    if (currentCPU_ == NO_PROCESS)
+    {
         currentCPU_ = pid;
-    else
+    }
+    else{
         readyQueue_.push_back(pid);
+        if (readyQueue_.size() == 0)
+            readyQueue_.push_back(pid);
+    }
 }
 
 void SimOS::DiskReadRequest( int diskNumber, std::string fileName)
@@ -147,6 +152,7 @@ void SimOS::SimExit()
         TerminateProcess(currentCPU_);
     }
     UpdateCPU();
+    UpdateDisk();
 }
 
 void SimOS::SimWait()
@@ -228,4 +234,31 @@ MemoryUsage SimOS::GetMemory()
         }
     }
     return output;
+}
+
+void SimOS::UpdateDisk()
+{
+    for(int i = 0; i < currentIORequests_.size(); i++)
+    {
+        if (processes_[currentIORequests_[i].PID].PID == 0 || processes_[currentIORequests_[i].PID].isZombie)
+        {
+            currentIORequests_[i] = FileReadRequest();
+        }
+        for (auto it = diskQueues_[i].begin(); it != diskQueues_[i].end();)
+        {
+            if (processes_[it->PID].PID == 0 || processes_[it->PID].isZombie)
+            {
+                it = diskQueues_[i].erase(it);
+            }
+            else
+            {
+                ++it;
+            }
+        }
+        if (currentIORequests_[i].fileName == "" && !diskQueues_[i].empty())
+        {
+            currentIORequests_[i] = diskQueues_[i].front();
+            diskQueues_[i].pop_front();
+        }
+    }   
 }
