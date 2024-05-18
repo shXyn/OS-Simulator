@@ -1,7 +1,7 @@
 #include "simOS.hpp"
 
 SimOS::SimOS( int numberOfDisks, unsigned long long amountOfRAM, unsigned int pageSize)
-:amountOfFrames_{amountOfRAM/pageSize},pageSize_{pageSize},currentPID_{1},currentCPU_{NO_PROCESS},diskQueues_(numberOfDisks),currentIORequests_(numberOfDisks),recencyCount_{0}
+:amountOfFrames_{amountOfRAM/pageSize},pageSize_{pageSize},currentPID_{1},currentCPU_{NO_PROCESS},diskQueues_(numberOfDisks),currentIORequests_(numberOfDisks),recencyCount_{1}
 {
     memoryCounter_.resize(amountOfFrames_);
     physicalMemory_.resize(amountOfFrames_);
@@ -116,9 +116,12 @@ void SimOS::SimExit()
     }
     else if(!processes_[process.parentPID].isWaiting)
     {
-        Process newZombie{currentCPU_,process.parentPID,false,true};
-        TerminateProcess(currentCPU_);
-        process = newZombie;
+        process.isZombie = true;
+        process.logicalMemory.clear();
+        for(auto child : process.children)
+        {
+            TerminateProcess(currentCPU_);
+        }
     }
     else
     {
@@ -131,12 +134,11 @@ void SimOS::SimExit()
 void SimOS::SimWait()
 {
     auto& process = processes_[currentCPU_];
-
     if (process.children.empty())
     {
         return;
     }
-    for(auto it = process.children.begin(); it != process.children.begin(); ++it)
+    for(auto it = process.children.begin(); it != process.children.end(); ++it)
     {
         if(processes_[*it].isZombie)
         {
@@ -151,16 +153,27 @@ void SimOS::SimWait()
 
 void SimOS::TerminateProcess(int pid)
 {
-    if (processes_[pid].children.empty())
-        processes_[pid] = Process();
-    else{
-        for(int child : processes_[pid].children)
+    auto& process = processes_[pid];
+    if (!processes_[pid].children.empty())
+    {
+        auto childrenCopy = process.children;
+        for(int child : childrenCopy)
         {
             TerminateProcess(child);
         }
-        processes_[pid] = Process();
     }
-
+    
+    if (!process.logicalMemory.empty())
+    {
+        for (auto& logItem : process.logicalMemory) {
+            
+            {
+                physicalMemory_[logItem.frameNumber] = MemoryItem();
+                memoryCounter_[logItem.frameNumber] = 1;
+            }
+        }
+    }
+    process = Process();
 }
 
 void SimOS::AccessMemoryAddress(unsigned long long address)
@@ -171,22 +184,18 @@ void SimOS::AccessMemoryAddress(unsigned long long address)
     if(selectProcess.PID != 0 && physicalMemory_[selectProcess.frameNumber].PID == selectProcess.PID)
     {
         memoryCounter_[selectProcess.frameNumber] = recencyCount_++;
-        std::cout << "Count: "<< selectProcess.pageNumber <<  std::endl;
     }
 
     else{
-        unsigned long long processFrame;
+        unsigned long long processFrame=0;
         auto leastRecent = std::min_element(memoryCounter_.begin(),memoryCounter_.end());
         if (leastRecent != memoryCounter_.end())
-            processFrame = memoryCounter_.begin() - leastRecent;
-        else
-            processFrame = 0;
+            processFrame = std::distance(memoryCounter_.begin(),leastRecent);
         MemoryItem newItem{processPage,processFrame,currentCPU_};
 
         memoryCounter_[processFrame] = recencyCount_++;
         physicalMemory_[newItem.frameNumber] = newItem;
         selectProcess = newItem;
-        std::cout << "Count: "<< selectProcess.pageNumber <<std::endl;
     }
 }
 
