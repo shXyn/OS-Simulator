@@ -13,12 +13,16 @@
 class Process
 {
     private:
-    int PID {0};
-    int parentPID {0};
-    bool isWaiting = false;
-    bool isZombie = false;
-    std::vector<int> children;
-    MemoryUsage logicalMemory;
+        int PID {0};
+        int parentPID {0};
+        bool isWaiting = false;
+        bool isZombie = false;
+        std::vector<int> children;
+        MemoryUsage logicalMemory;
+
+    public:
+        
+
 };
 
 #endif

@@ -30,6 +30,17 @@ void SimOS::UpdateCPU()
 {
     if (!readyQueue_.empty())
     {
+        for(auto it = readyQueue_.begin(); it != readyQueue_.end();)
+        {
+            if (processes_[*it].PID == 0 || processes_[*it].isZombie)
+            {
+                it = readyQueue_.erase(it);
+            }
+            else
+            {
+                ++it;
+            }
+        }
         currentCPU_ = readyQueue_.front();
         readyQueue_.pop_front();
     }
