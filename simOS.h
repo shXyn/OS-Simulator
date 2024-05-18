@@ -7,6 +7,7 @@
 #include<deque>
 #include<unordered_map>
 #include <iterator>
+#include <stdexcept>
 
 struct FileReadRequest
 {

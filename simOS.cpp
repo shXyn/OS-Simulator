@@ -1,4 +1,4 @@
-#include "simOS.h"
+#include "SimOS.h"
 
 SimOS::SimOS( int numberOfDisks, unsigned long long amountOfRAM, unsigned int pageSize)
 :amountOfFrames_{amountOfRAM/pageSize},pageSize_{pageSize},currentPID_{1},currentCPU_{NO_PROCESS},diskQueues_(numberOfDisks),currentIORequests_(numberOfDisks),recencyCount_{1}
@@ -19,7 +19,6 @@ void SimOS::NewProcess()
     newProcess.logicalMemory.resize(amountOfFrames_);
     processes_[pid] = newProcess;
     UpdateCPU(pid);
-
 }
 
 int SimOS::GetCPU()
@@ -65,6 +64,10 @@ void SimOS::DiskReadRequest( int diskNumber, std::string fileName)
 
 FileReadRequest SimOS::GetDisk( int diskNumber )
 {
+    if(diskNumber >= diskQueues_.size())
+    {
+        throw std::out_of_range("Attempt to access out of bound disk index\n");
+    }
     return currentIORequests_[diskNumber];
 }
 
@@ -92,6 +95,10 @@ std::deque<int> SimOS::GetReadyQueue()
 
 void SimOS::SimFork()
 {
+    if (currentCPU_ == NO_PROCESS) {
+        throw std::logic_error("Attempt to fork from idle CPU.\n");
+    }
+
     int pid = currentPID_++;
     Process newFork{pid,currentCPU_,false,false};
     newFork.logicalMemory.resize(amountOfFrames_);
