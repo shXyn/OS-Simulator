@@ -39,22 +39,49 @@ struct Process
 class SimOS
 {
     private:
+
+        //Memory Items
         unsigned long long amountOfFrames_;
         unsigned int pageSize_;
-        
+        int recencyCount_;
+        std::vector<int> memoryCounter_;
         MemoryUsage physicalMemory_;
-        std::deque<int> readyQueue_;
+        
 
+        //Disk Items
         std::vector<FileReadRequest> currentIORequests_;
         std::vector<std::deque<FileReadRequest>> diskQueues_;
 
+        //Process/CPU Items
         int currentPID_;
-        int currentCPU_;
-        int recencyCount_;
-        
-
         std::unordered_map<int,Process> processes_;
-        std::vector<int> memoryCounter_;
+
+        int currentCPU_;
+        std::deque<int> readyQueue_;
+        
+        //Private Helper Methods
+
+        /**
+         * Runs after instruction to change process in CPU.
+         * Checks the ready queue and updates the CPU depending on if there are any processes queueing.
+        */
+        void UpdateCPU();
+        
+        /**
+         * Checks the ready queue and updates the CPU depending on if there are any processes queueing.
+         * Inserts new pid into CPU or ready queue.
+        */
+        void UpdateCPU(int pid);
+
+        /**
+        * Executes cascading termination on a process.
+        */
+        void TerminateProcess(int pid);
+
+        /**
+        * Updates the disk queues based on terminated processes
+        */
+        void UpdateDisk();
 
 
 
@@ -154,28 +181,6 @@ class SimOS
             * If instruction is called that requires a running process, but the CPU is idle, throw std::logic_error exception.
         */
         std::deque<FileReadRequest> GetDiskQueue( int diskNumber );
-
-        /**
-         * Runs after instruction to change process in CPU.
-         * Checks the ready queue and updates the CPU depending on if there are any processes queueing.
-        */
-
-        void UpdateCPU();
-        /**
-         * Checks the ready queue and updates the CPU depending on if there are any processes queueing.
-         * Inserts new pid into CPU or ready queue.
-        */
-        void UpdateCPU(int pid);
-
-        /**
-         * Executes cascading termination on a process.
-        */
-       void TerminateProcess(int pid);
-
-       /**
-        * Updates the disk queues based on terminated processes
-       */
-      void UpdateDisk();
 };
 
 #endif

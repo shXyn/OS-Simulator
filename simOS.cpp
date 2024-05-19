@@ -65,6 +65,10 @@ void SimOS::UpdateCPU(int pid)
 
 void SimOS::DiskReadRequest( int diskNumber, std::string fileName)
 {
+    if(diskNumber >= diskQueues_.size())
+    {
+        throw std::out_of_range("Attempt to access out of bound disk index\n");
+    }
     FileReadRequest newRequest {currentCPU_,fileName};
 
     if(currentIORequests_[diskNumber].PID == 0)
@@ -89,11 +93,19 @@ FileReadRequest SimOS::GetDisk( int diskNumber )
 
 std::deque<FileReadRequest> SimOS::GetDiskQueue( int diskNumber )
 {
+    if(diskNumber >= diskQueues_.size())
+    {
+        throw std::out_of_range("Attempt to access out of bound disk index\n");
+    }
     return diskQueues_[diskNumber];
 }
 
 void SimOS::DiskJobCompleted( int diskNumber )
 {
+    if(diskNumber >= diskQueues_.size())
+    {
+        throw std::out_of_range("Attempt to access out of bound disk index\n");
+    }
     UpdateCPU(currentIORequests_[diskNumber].PID);
     if (diskQueues_[diskNumber].empty())
         currentIORequests_[diskNumber] = FileReadRequest();
@@ -112,7 +124,7 @@ std::deque<int> SimOS::GetReadyQueue()
 void SimOS::SimFork()
 {
     if (currentCPU_ == NO_PROCESS) {
-        throw std::logic_error("Attempt to fork from idle CPU.\n");
+        throw std::logic_error("Instruction require running process, but CPU is idle.\n");
     }
 
     int pid = currentPID_++;
@@ -125,12 +137,18 @@ void SimOS::SimFork()
 
 void SimOS::TimerInterrupt()
 {
+    if (currentCPU_ == NO_PROCESS) {
+        throw std::logic_error("Instruction require running process, but CPU is idle.\n");
+    }
     readyQueue_.push_back(currentCPU_);
     UpdateCPU();
 }
 
 void SimOS::SimExit()
 {
+    if (currentCPU_ == NO_PROCESS) {
+        throw std::logic_error("Instruction require running process, but CPU is idle.\n");
+    }
     auto& process = processes_[currentCPU_];
     
     if (process.parentPID == 0)
@@ -157,6 +175,9 @@ void SimOS::SimExit()
 
 void SimOS::SimWait()
 {
+    if (currentCPU_ == NO_PROCESS) {
+        throw std::logic_error("Instruction require running process, but CPU is idle.\n");
+    }
     auto& process = processes_[currentCPU_];
     if (process.children.empty())
     {
@@ -202,6 +223,9 @@ void SimOS::TerminateProcess(int pid)
 
 void SimOS::AccessMemoryAddress(unsigned long long address)
 {
+    if (currentCPU_ == NO_PROCESS) {
+        throw std::logic_error("Instruction require running process, but CPU is idle.\n");
+    }
     unsigned long long processPage = address/pageSize_;
     auto& selectProcess = processes_[currentCPU_].logicalMemory[processPage];
 
