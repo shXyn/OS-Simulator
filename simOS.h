@@ -1,3 +1,5 @@
+//Henry Tse
+
 #ifndef SIMOS_H
 #define SIMOS_H
 
